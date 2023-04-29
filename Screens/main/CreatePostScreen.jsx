@@ -13,12 +13,57 @@ import { Feather } from "@expo/vector-icons";
 import { Dimensions } from "react-native";
 import { Header } from "../../components/Header";
 import { SimpleLineIcons } from "@expo/vector-icons";
+import { Camera } from "expo-camera";
+import * as Location from "expo-location";
+import * as MediaLibrary from "expo-media-library";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as ImagePicker from "expo-image-picker";
 
 let ScreenHeight = Dimensions.get("window").height;
 export const CreatePostScreen = () => {
   const [titleValue, setTitleValue] = useState("");
   const [isCreateButtonEnable, setIsCreateButtonEnable] = useState();
   const [locationName, setLocationName] = useState("");
+  const [hasPermission, setHasPermission] = useState(null);
+  const [camera, setCamera] = useState(null);
+  const [photo, setPhoto] = useState(null);
+  const [location, setLocation] = useState(null)
+
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      await MediaLibrary.requestPermissionsAsync();
+      const locationStatus = await Location.requestForegroundPermissionsAsync();
+      if (status === "granted" && locationStatus.status === "granted") {
+        setHasPermission(true);
+      }
+    })();
+  }, []);
+
+  const takePhoto = async () => {
+    const photo = await camera.takePictureAsync();
+    const location = await Location.getCurrentPositionAsync({});
+    const coords = {
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+    };
+    setLocation(coords);
+    setPhoto(photo.uri);
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setPhoto(result.assets[0].uri);
+    }
+  };
 
   const onSubmit = () => {
     console.log({ titleValue, locationName });
@@ -34,18 +79,46 @@ export const CreatePostScreen = () => {
     setLocationName("");
   };
 
+  if (hasPermission === null) {
+    return <View />;
+  }
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
+
   return (
     <KeyboardWrapper>
       <Header title={'Create'}/>
       <ScrollView>
         <View style={styles.screen}>
-          <View style={styles.imageField}>
-            <TouchableOpacity style={styles.makePhotoButton}>
-            <SimpleLineIcons name="camera" size={24} color="#BDBDBD" />
-          </TouchableOpacity>
-          </View>
-          
-          <TouchableOpacity>
+        {!photo ? (
+            <Camera style={styles.imageField} ref={setCamera}>
+              <TouchableOpacity
+                style={styles.makePhotoButton}
+                onPress={takePhoto}
+              >
+                <SimpleLineIcons name="camera" size={24} color="#BDBDBD" />
+              </TouchableOpacity>
+            </Camera>
+          ) : (
+            <View style={styles.imageField}>
+              <TouchableOpacity
+                onPress={() => setPhoto(null)}
+                style={styles.retakePhoto}
+              >
+                <MaterialCommunityIcons
+                  name="camera-retake"
+                  size={24}
+                  color="#FF6C00"
+                />
+              </TouchableOpacity>
+              <Image
+                style={{ height: 240, width: "100%" }}
+                source={{ uri: photo }}
+              />
+            </View>
+          )}          
+          <TouchableOpacity onPress={pickImage}>
             <Text style={styles.uploadButton}>Upload photo</Text>
           </TouchableOpacity>
           <View style={styles.inputs}>

@@ -3,9 +3,11 @@ import { Header } from "../../components/Header";
 import { useNavigation } from "@react-navigation/native";
 
 export const PostsScreen = () => {
+  const navigation = useNavigation()
   return (
     <>
     <Header title={'Posts'}/>
+    <Text onPress={() => navigation.navigate('Map')}>Comments</Text>
       <View style={styles.screen}>
         <View style={styles.userCard}>
           <View style={styles.avatarWrapper}>
