@@ -29,7 +29,7 @@ export const RegistrationScreen = ({ navigation }) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         <ImageBackground
-          source={require("../assets/background.png")}
+          source={require("../../assets/background.png")}
           style={styles.image}
         >
           <View style={styles.form}>
@@ -84,7 +84,7 @@ export const RegistrationScreen = ({ navigation }) => {
             <TouchableOpacity style={styles.button} onPress={onFormSubmit}>
               <Text style={styles.buttonTitle}>Sign Up</Text>
             </TouchableOpacity>
-            <Text style={styles.switchScreenButton}>
+            <Text style={styles.switchScreenButton} onPress={() => navigation.navigate('Login')}>
               Already have an account?
             </Text>
           </View>
